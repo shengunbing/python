@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+
+from PIL import Image,ImageDraw,ImageFont
+import glob,os
+
+tex = "1" #需要在图片上输出的文本
+
+def calc(x,y): #calc函数用于根据图片大小计算出最优的字体大小和最优的位置
+
+	#计算字体大小
+	bestplex = x*y*0.01 #根据图片的总像素来计算字体的最优像素值，个人感觉每个字占图片尺寸的百分之一是最优的
+	half_bestplex = bestplex ** 0.5 #假定每个字符为正方形，求根计算正方形的一边长
+	calc_size = int(half_bestplex / 0.75) #0.75为字体大小为1时假定正方形的边长，可以用上面计算出来的边长利用这个比例计算出字体大小并转换成整数型
+	
+	#计算放置在右上角的最优路径
+	str_size=(len(tex)*0.75*calc_size) #根据提供的文本计算出整个文本的长度
+	weight=int(x-str_size) #图片的长减去问题的长计算出文本出现在右上角的x轴
+	location = (weight,0)
+
+	return calc_size,location
+
+filedir = "C:\\Users\\zhoul\\Desktop\\daydayproject\\0\\ttest\\" #需要处理的目录
+file_type = "*.jpg" #需要处理的文件类型
+
+for filename in glob.glob(filedir+file_type):
+	
+	im = Image.open(filename) #获取文件路径
+
+	x,y = im.size
+
+	calc_size,calc_location=calc(x,y) #从函数中导出变量
+
+	ft = ImageFont.truetype("C:\\Windows\\Fonts\\Calibri\\calibri.ttf",calc_size) #calc_size为calc函数计算出来的最优字体大小
+
+	draw = ImageDraw.Draw(im)
+
+	draw.text(calc_location,tex,font=ft,fill='red') #calc_location为calc函数计算出来的最优位置
+
+	im.show()
+	
+#需要改进的地方，程序中默认按照font大小为1时每个字符占用0.75*0.75像素进行计算
+#但存在一些占用比较小的情况，如果字母I，这种情况下会出现文本离图片右边框很远的情况
+#需要对每个英文单词在font大小为1时的像素大小进行统计，并按照这个值计算文本的长度，最后在根据计算出来的文本长度计算实际的location
